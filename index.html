@@ -64,12 +64,8 @@ h1,h2,h3 { color: black; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
 </div>
 
 <script>
-// --- Full Indian districts list ---
-const districts = [
-  "Adilabad","Agra","Ahmedabad","Ahmednagar","Aizawl","Ajmer","Alappuzha","Alirajpur",
-  "Allahabad","Almora","Alwar","Ambala","Amethi","Amravati","Amritsar","Anantapur",
-  // ... add remaining districts (full list 700+)
-];
+// --- Indian districts (abbreviated for demo; add full list for production) ---
+const districts = ["Pune","Mumbai","Nagpur","Aurangabad","Nashik","Ahmednagar","Kolhapur","Solapur"];
 const districtSelect = document.getElementById("districtSelect");
 
 // Populate dropdown
@@ -87,7 +83,6 @@ function populateDistricts() {
 function detectLocation() {
     if(navigator.geolocation) {
         navigator.geolocation.getCurrentPosition((position) => {
-            // Map lat/lng to district (demo: random)
             const index = Math.floor(Math.random()*districts.length);
             districtSelect.value = districts[index];
             fetchDistrictData(districts[index]);
@@ -97,7 +92,7 @@ function detectLocation() {
     }
 }
 
-// Fetch data from data.gov.in MGNREGA API
+// Fetch data from MGNREGA API
 let pieChart;
 districtSelect.addEventListener("change", () => {
     const district = districtSelect.value;
@@ -106,7 +101,7 @@ districtSelect.addEventListener("change", () => {
 
 async function fetchDistrictData(district) {
     try {
-        const apiKey = "579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b"; // Replace with your data.gov.in API key
+        const apiKey = '579b464db66ec23bdd000001cdd3946e44ce4aad7209ff7b23ac571b';
         const apiUrl = `https://api.data.gov.in/resource/1c5c4ed1-6de8-4f4d-8f5e-6c7f1a4307c6?format=json&api-key=${apiKey}&filters[district_name]=${district}&limit=1`;
 
         const res = await fetch(apiUrl);
