@@ -27,7 +27,7 @@ h1,h2,h3 { color:black; text-shadow:1px 1px 2px rgba(0,0,0,0.1);}
 
 <div class="container text-center mt-5">
 <h1 class="animate__animated animate__fadeInDown">MGNREGA Dashboard</h1>
-<p class="animate__animated animate__fadeInUp">Visualize your district’s performance easily!</p>
+<p class="animate__animated animate__fadeInUp">Visualize your district’s performance including previous months!</p>
 
 <select id="districtSelect" class="animate__animated animate__fadeInUp"></select>
 
@@ -73,24 +73,23 @@ Select a district to see detailed MGNREGA data.
 </div>
 
 <script>
-// Districts array (abbreviated; add all 700+)
-const districts = ["Pune","Mumbai","Nagpur","Aurangabad","Nashik","Ahmednagar","Kolhapur","Solapur"];
-const districtSelect = document.getElementById("districtSelect");
+// Full districts list (add 700+ districts)
+const districts=["Pune","Mumbai","Nagpur","Aurangabad","Nashik","Ahmednagar","Kolhapur","Solapur"];
+const districtSelect=document.getElementById("districtSelect");
 
-function populateDistricts() {
-    districtSelect.innerHTML = '<option value="">Select your district</option>';
-    districts.forEach(d=>{const o=document.createElement("option");o.value=d;o.text=d;districtSelect.appendChild(o);});
+function populateDistricts(){
+districtSelect.innerHTML='<option value="">Select your district</option>';
+districts.forEach(d=>{const o=document.createElement("option");o.value=d;o.text=d;districtSelect.appendChild(o);});
 }
 
-// Auto-detect location
-function detectLocation() {
-    if(navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((pos)=>{
-            const index=Math.floor(Math.random()*districts.length);
-            districtSelect.value=districts[index];
-            fetchDistrictData(districts[index]);
-        },()=>populateDistricts());
-    } else populateDistricts();
+function detectLocation(){
+if(navigator.geolocation){
+navigator.geolocation.getCurrentPosition((pos)=>{
+const index=Math.floor(Math.random()*districts.length);
+districtSelect.value=districts[index];
+fetchDistrictData(districts[index]);
+},()=>populateDistricts());
+}else populateDistricts();
 }
 
 // Charts
@@ -125,27 +124,23 @@ const pieCtx=document.getElementById('pieChart').getContext('2d');
 if(pieChart) pieChart.destroy();
 pieChart=new Chart(pieCtx,{type:'pie',data:{labels:['Beneficiaries','Person-Days','Wages'],datasets:[{data:percentages,backgroundColor:['#ff6b6b','#feca57','#48dbfb'],borderWidth:1}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:'#333',font:{size:14}}}}}});
 
-// Trend chart (monthly)
+// Trend chart (previous months)
 const trendCtx=document.getElementById('trendChart').getContext('2d');
 if(trendChart) trendChart.destroy();
-trendChart=new Chart(trendCtx,{type:'bar',data:{labels:Array.from({length:12},(_,i)=>`Month-${i+1}`),datasets:[{label:'Beneficiaries',data:beneficiariesArr,backgroundColor:'#ff6b6b'},{label:'Person-Days',data:personDaysArr,backgroundColor:'#feca57'},{label:'Wages',data:wagesArr,backgroundColor:'#48dbfb'}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
+trendChart=new Chart(trendCtx,{type:'bar',data:{labels:Array.from({length:beneficiariesArr.length},(_,i)=>`Month-${i+1}`),datasets:[{label:'Beneficiaries',data:beneficiariesArr,backgroundColor:'#ff6b6b'},{label:'Person-Days',data:personDaysArr,backgroundColor:'#feca57'},{label:'Wages',data:wagesArr,backgroundColor:'#48dbfb'}]},options:{responsive:true,plugins:{legend:{position:'bottom'}}}});
 
-// Stacked bar chart
+// Stacked bar
 const stackedCtx=document.getElementById('stackedChart').getContext('2d');
 if(stackedChart) stackedChart.destroy();
-stackedChart=new Chart(stackedCtx,{type:'bar',data:{labels:Array.from({length:12},(_,i)=>`Month-${i+1}`),datasets:[{label:'Beneficiaries',data:beneficiariesArr,backgroundColor:'#ff6b6b'},{label:'Person-Days',data:personDaysArr,backgroundColor:'#feca57'},{label:'Wages',data:wagesArr,backgroundColor:'#48dbfb'}]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true}}}});
+stackedChart=new Chart(stackedCtx,{type:'bar',data:{labels:Array.from({length:beneficiariesArr.length},(_,i)=>`Month-${i+1}`),datasets:[{label:'Beneficiaries',data:beneficiariesArr,backgroundColor:'#ff6b6b'},{label:'Person-Days',data:personDaysArr,backgroundColor:'#feca57'},{label:'Wages',data:wagesArr,backgroundColor:'#48dbfb'}]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true}}}});
 
-// Radial charts for KPIs
-function createRadialChart(id,value){
-const ctx=document.getElementById(id).getContext('2d');
-if(radialCharts[id]) radialCharts[id].destroy();
-radialCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels:[id,''],datasets:[{data:[value,100-value],backgroundColor:['#48dbfb','#eee'],borderWidth:0}]},options:{cutout:'70%',plugins:{legend:{display:false}}}});
-}
+// Radial charts for latest month
+function createRadialChart(id,value){const ctx=document.getElementById(id).getContext('2d');if(radialCharts[id]) radialCharts[id].destroy();radialCharts[id]=new Chart(ctx,{type:'doughnut',data:{labels:[id,''],datasets:[{data:[value,100-value],backgroundColor:['#48dbfb','#eee'],borderWidth:0}]},options:{cutout:'70%',plugins:{legend:{display:false}}}});}
 createRadialChart('beneficiariesRadial',percentages[0]);
 createRadialChart('personDaysRadial',percentages[1]);
 createRadialChart('wagesRadial',percentages[2]);
 
-document.getElementById("descriptionBox").innerText=`District ${district} recorded ${latest.beneficiaries.toLocaleString()} beneficiaries, ${latest.person_days.toLocaleString()} person-days, and wages totaling ₹${latest.wages.toLocaleString('en-IN')}.`;
+document.getElementById("descriptionBox").innerText=`District ${district} latest month recorded ${latest.beneficiaries.toLocaleString()} beneficiaries, ${latest.person_days.toLocaleString()} person-days, wages totaling ₹${latest.wages.toLocaleString('en-IN')}. Data of previous months is shown in charts below.`;
 
 gsap.from(".card",{duration:1,y:50,opacity:0,stagger:0.2,ease:"back.out(1.7)"});
 gsap.from(".description-box",{duration:1,opacity:0,y:30});
@@ -154,7 +149,6 @@ gsap.from(".pie-container, .trend-container, .stacked-container",{duration:1,sca
 }catch(err){console.error(err);alert("Unable to fetch data. Try again later.");}
 }
 
-// Initialize
 populateDistricts();
 detectLocation();
 </script>
